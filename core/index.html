@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<!-- By MrHacker-X -->
+<!-- Join us for more t.me/VritraSecz -->
+<!-- github.com/MrHacker-X -->
+<html lang="en">
+<head>
+  <title>LocatorX - Advance IP Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /*   By MrHacker-X   */
+
+    :root {
+      --bg: #050505;
+      --panel: #0d0d0d;
+      --panel-2: #111111;
+      --line: #2a0a0a;
+      --red: #ff2b2b;
+      --red-dim: #c21f1f;
+      --text: #e8e8e8;
+      --muted: #9a9a9a;
+      --mono: 'Cascadia Code', Consolas, 'Courier New', monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      overflow-x: hidden;
+    }
+
+    /* Matrix rain background */
+    #matrix {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      opacity: 0.22;
+      pointer-events: none;
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 18px 16px 40px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 0 6px;
+    }
+
+    #logx {
+      width: 130px;
+      filter: drop-shadow(0 0 14px rgba(255, 43, 43, 0.45));
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: 4px;
+      color: var(--red);
+      text-shadow: 0 0 12px rgba(255, 43, 43, 0.8), 0 0 40px rgba(255, 43, 43, 0.35);
+      text-transform: uppercase;
+    }
+
+    .tagline {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .live-clock {
+      font-size: 11px;
+      color: var(--red-dim);
+      letter-spacing: 1px;
+      border: 1px solid var(--line);
+      padding: 3px 10px;
+      background: rgba(20, 0, 0, 0.6);
+    }
+
+    /* Search panel */
+    .search-panel {
+      margin-top: 18px;
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--line);
+      padding: 16px;
+    }
+
+    label {
+      display: block;
+      text-align: center;
+      color: var(--red);
+      font-weight: bold;
+      font-size: 15px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      text-shadow: 0 0 8px rgba(255, 43, 43, 0.6);
+    }
+
+    .serlex {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      min-width: 0;
+      padding: 12px 14px;
+      border: 1px solid var(--red-dim);
+      font-size: 15px;
+      font-family: var(--mono);
+      color: var(--red);
+      background: #0a0a0a;
+      outline: none;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 12px rgba(255, 43, 43, 0.35), inset 0 0 8px rgba(255, 43, 43, 0.08);
+    }
+
+    input[type="text"]::placeholder { color: #7a3535; }
+
+    input[type="submit"], button.btn {
+      padding: 12px 26px;
+      border: 1px solid var(--red);
+      font-size: 14px;
+      font-weight: bold;
+      font-family: var(--mono);
+      letter-spacing: 1px;
+      color: #fff;
+      background: linear-gradient(180deg, #a11212, #5e0a0a);
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: filter 0.15s, box-shadow 0.15s;
+    }
+
+    input[type="submit"]:hover:not(:disabled), button.btn:hover:not(:disabled) {
+      filter: brightness(1.3);
+      box-shadow: 0 0 14px rgba(255, 43, 43, 0.5);
+    }
+
+    input[type="submit"]:disabled, button.btn:disabled {
+      opacity: 0.55;
+      cursor: wait;
+    }
+
+    /* History chips */
+    .history {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+      justify-content: center;
+    }
+
+    .history .chip {
+      font-size: 11px;
+      padding: 3px 10px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: #0a0a0a;
+      cursor: pointer;
+      letter-spacing: 1px;
+    }
+
+    .history .chip:hover {
+      color: var(--red);
+      border-color: var(--red-dim);
+      box-shadow: 0 0 8px rgba(255, 43, 43, 0.3);
+    }
+
+    /* Status line */
+    #statusLine {
+      min-height: 18px;
+      margin-top: 12px;
+      text-align: center;
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+
+    #statusLine.error { color: var(--red); text-shadow: 0 0 8px rgba(255,43,43,.5); }
+    #statusLine.ok { color: #37d33f; text-shadow: 0 0 8px rgba(55,211,63,.4); }
+
+    /* Results */
+    #ipDetails { margin-top: 16px; display: none; }
+
+    .flag-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .flag {
+      width: 58px;
+      height: 44px;
+      border: 1px solid var(--line);
+      background: #000;
+    }
+
+    .query-ip {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--red);
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(255, 43, 43, 0.6);
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+
+    .badge {
+      font-size: 11px;
+      letter-spacing: 1px;
+      padding: 4px 12px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: #0a0a0a;
+      text-transform: uppercase;
+    }
+
+    .badge.on { color: #37d33f; border-color: #123f14; }
+    .badge.off { color: #6b6b6b; border-color: #1c1c1c; opacity: 0.7; }
+    .badge.hot { color: var(--red); border-color: var(--red-dim); text-shadow: 0 0 6px rgba(255,43,43,.6); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--red);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 6px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 3px 0;
+      font-size: 13px;
+    }
+
+    .row .k { color: var(--muted); white-space: nowrap; }
+    .row .v { color: var(--text); text-align: right; word-break: break-word; cursor: pointer; }
+    .row .v:hover { color: var(--red); text-shadow: 0 0 6px rgba(255,43,43,.5); }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 14px;
+    }
+
+    button.btn.sm {
+      padding: 8px 16px;
+      font-size: 12px;
+    }
+
+    /* Map */
+    #map {
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    #map .map-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--red);
+    }
+
+    #map .coords {
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: none;
+    }
+
+    #map iframe { display: block; width: 100%; height: 320px; border: 0; }
+
+    /* Scanlines */
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.015) 0px,
+        rgba(255, 255, 255, 0.015) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+    }
+
+    #copyright {
+      text-align: center;
+      color: #565656;
+      font-size: 11px;
+      letter-spacing: 1px;
+      margin-top: 26px;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #140404;
+      border: 1px solid var(--red-dim);
+      color: var(--red);
+      font-size: 12px;
+      letter-spacing: 1px;
+      padding: 8px 18px;
+      opacity: 0;
+      transition: opacity 0.25s, transform 0.25s;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 20px; letter-spacing: 3px; }
+      .serlex { flex-direction: column; }
+      #map iframe { height: 260px; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="matrix"></canvas>
+  <div class="scanlines"></div>
+
+  <div class="wrap">
+    <header>
+      <img src="https://i.ibb.co/KLwZHHy/ic2.png" alt="logox" id="logx">
+      <h1>LocatorX</h1>
+      <p class="tagline">// Advance IP Tracker</p>
+      <div class="live-clock" id="liveClock">--:--:--</div>
+    </header>
+
+    <div class="search-panel">
+      <label for="ipInput">Enter Target IP</label>
+      <div class="serlex">
+        <input type="text" id="ipInput" name="ipInput" placeholder="e.g. 8.8.8.8" autocomplete="off" spellcheck="false" required>
+        <input type="submit" value="Trace" id="traceBtn">
+      </div>
+      <div class="history" id="history"></div>
+      <div id="statusLine"></div>
+    </div>
+
+    <div id="ipDetails">
+      <div class="flag-line">
+        <img class="flag" id="flagImg" alt="flag">
+        <div class="query-ip" id="queryIp"></div>
+      </div>
+      <div class="badges" id="badges"></div>
+      <div class="grid" id="cardsGrid"></div>
+      <div class="actions">
+        <button class="btn sm" id="copyJsonBtn">&#x29C9; Copy JSON</button>
+        <button class="btn sm" id="exportJsonBtn">&#x2B73; Export .json</button>
+        <button class="btn sm" id="gmapsBtn">&#x1F5FA; Open in Google Maps</button>
+      </div>
+    </div>
+
+    <div id="map" style="display:none;">
+      <div class="map-head">
+        <span>Approximate Location</span>
+        <span class="coords" id="coordsText"></span>
+      </div>
+      <iframe id="mapFrame" loading="lazy" referrerpolicy="no-referrer"></iframe>
+    </div>
+
+    <p id="copyright">Created By: MrHacker-X</p>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    // Give me credit if you copy my code
+
+    const ipInput = document.getElementById('ipInput');
+    const traceBtn = document.getElementById('traceBtn');
+    const statusLine = document.getElementById('statusLine');
+    const ipDetails = document.getElementById('ipDetails');
+    const cardsGrid = document.getElementById('cardsGrid');
+    const badgesBox = document.getElementById('badges');
+    const flagImg = document.getElementById('flagImg');
+    const queryIpEl = document.getElementById('queryIp');
+    const mapBox = document.getElementById('map');
+    const mapFrame = document.getElementById('mapFrame');
+    const coordsText = document.getElementById('coordsText');
+    const historyBox = document.getElementById('history');
+    const toast = document.getElementById('toast');
+    const liveClock = document.getElementById('liveClock');
+
+    let lastData = null;
+    const API_FIELDS = 'status,message,continent,continentCode,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,offset,currency,isp,org,as,asname,reverse,mobile,proxy,hosting,query';
+
+    // ---------- utilities ----------
+
+    function esc(value) {
+      const div = document.createElement('div');
+      div.textContent = String(value);
+      return div.innerHTML;
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove('show'), 1600);
+    }
+
+    function setStatus(msg, kind) {
+      statusLine.textContent = msg;
+      statusLine.className = kind || '';
+    }
+
+    // ---------- history (localStorage) ----------
+
+    function getHistory() {
+      try { return JSON.parse(localStorage.getItem('lx_history') || '[]'); }
+      catch (e) { return []; }
+    }
+
+    function pushHistory(ip) {
+      let h = getHistory().filter(x => x !== ip);
+      h.unshift(ip);
+      h = h.slice(0, 8);
+      try { localStorage.setItem('lx_history', JSON.stringify(h)); } catch (e) {}
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const h = getHistory();
+      historyBox.innerHTML = '';
+      h.forEach(ip => {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = ip;
+        chip.title = 'Trace ' + ip;
+        chip.addEventListener('click', () => {
+          ipInput.value = ip;
+          doTrace();
+        });
+        historyBox.appendChild(chip);
+      });
+    }
+
+    // ---------- matrix rain ----------
+
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+
+    let drops = [];
+    const FONT = 14;
+    const GLYPHS = '01ABCDEF<>/\\[]{}$#@*+=;:'.split('');
+
+    function resizeMatrix() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const cols = Math.floor(canvas.width / FONT);
+      drops = Array.from({ length: cols }, () => Math.random() * -100);
+    }
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(5, 5, 5, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = FONT + 'px monospace';
+      for (let i = 0; i < drops.length; i++) {
+        const glyph = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+        const x = i * FONT;
+        const y = drops[i] * FONT;
+        // bright head, dark red tail
+        ctx.fillStyle = Math.random() > 0.975 ? '#ff5555' : '#8a1010';
+        ctx.fillText(glyph, x, y);
+        if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i] += 0.5;
+      }
+    }
+
+    window.addEventListener('resize', resizeMatrix);
+    resizeMatrix();
+    setInterval(drawMatrix, 66);
+
+    // ---------- live clock ----------
+
+    function tickClock() {
+      liveClock.textContent = new Date().toLocaleTimeString();
+    }
+    tickClock();
+    setInterval(tickClock, 1000);
+
+    // ---------- rendering ----------
+
+    function badge(label, on, hot) {
+      const b = document.createElement('span');
+      b.className = 'badge ' + (hot ? 'hot' : (on ? 'on' : 'off'));
+      b.textContent = label;
+      return b;
+    }
+
+    function card(title, rows) {
+      const c = document.createElement('div');
+      c.className = 'card';
+      const h = document.createElement('h3');
+      h.textContent = title;
+      c.appendChild(h);
+      rows.forEach(([k, v]) => {
+        if (v === '' || v === undefined || v === null) return;
+        const r = document.createElement('div');
+        r.className = 'row';
+        const ke = document.createElement('span');
+        ke.className = 'k';
+        ke.textContent = k;
+        const ve = document.createElement('span');
+        ve.className = 'v';
+        ve.textContent = v;
+        ve.title = 'Click to copy';
+        ve.addEventListener('click', () => {
+          copyText(String(v));
+          showToast('Copied: ' + String(v).slice(0, 24));
+        });
+        r.appendChild(ke);
+        r.appendChild(ve);
+        c.appendChild(r);
+      });
+      return c;
+    }
+
+    function offsetToUtc(offsetSeconds) {
+      const sign = offsetSeconds >= 0 ? '+' : '-';
+      const abs = Math.abs(offsetSeconds);
+      const hh = String(Math.floor(abs / 3600)).padStart(2, '0');
+      const mm = String(Math.floor((abs % 3600) / 60)).padStart(2, '0');
+      return 'UTC' + sign + hh + ':' + mm;
+    }
+
+    function render(data) {
+      lastData = data;
+
+      queryIpEl.textContent = data.query || ipInput.value;
+      flagImg.src = 'https://flagcdn.com/w80/' + String(data.countryCode || '').toLowerCase() + '.png';
+      flagImg.onerror = () => { flagImg.style.visibility = 'hidden'; };
+      flagImg.style.visibility = 'visible';
+
+      // badges
+      badgesBox.innerHTML = '';
+      if (data.proxy) badgesBox.appendChild(badge('PROXY', true, true));
+      if (data.hosting) badgesBox.appendChild(badge('HOSTING', true, true));
+      if (data.mobile) badgesBox.appendChild(badge('MOBILE', true, false));
+      if (!data.proxy && !data.hosting && !data.mobile) badgesBox.appendChild(badge('CLEAN', true, false));
+
+      // cards
+      cardsGrid.innerHTML = '';
+      cardsGrid.appendChild(card('Location', [
+        ['Country', (data.country || '') + (data.countryCode ? ' (' + data.countryCode + ')' : '')],
+        ['Region', data.regionName || ''],
+        ['City', data.city || ''],
+        ['ZIP', data.zip || ''],
+        ['Continent', data.continent || ''],
+        ['District', data.district || ''],
+      ]));
+      cardsGrid.appendChild(card('Coordinates', [
+        ['Latitude', data.lat !== undefined ? String(data.lat) : ''],
+        ['Longitude', data.lon !== undefined ? String(data.lon) : ''],
+        ['Timezone', data.timezone || ''],
+        ['UTC Offset', data.offset !== undefined ? offsetToUtc(data.offset) : ''],
+        ['Currency', data.currency || ''],
+      ]));
+      cardsGrid.appendChild(card('Network', [
+        ['ISP', data.isp || ''],
+        ['Organization', data.org || ''],
+        ['AS Number', data.as || ''],
+        ['AS Name', data.asname || ''],
+        ['Reverse DNS', data.reverse || ''],
+      ]));
+
+      // map
+      if (data.lat && data.lon) {
+        coordsText.textContent = data.lat + ', ' + data.lon;
+        mapFrame.src = 'https://www.google.com/maps?q=' + data.lat + ',' + data.lon +
+                       '&hl=en&z=14&output=embed';
+        mapBox.style.display = 'block';
+      } else {
+        mapBox.style.display = 'none';
+        mapFrame.src = 'about:blank';
+      }
+
+      ipDetails.style.display = 'block';
+      ipDetails.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ---------- copy / export ----------
+
+    function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+
+    function exportJson() {
+      if (!lastData) return;
+      const blob = new Blob([JSON.stringify(lastData, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'locatorx_' + (lastData.query || 'trace') + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      showToast('Exported JSON');
+    }
+
+    document.getElementById('copyJsonBtn').addEventListener('click', () => {
+      if (!lastData) return;
+      copyText(JSON.stringify(lastData, null, 2));
+      showToast('JSON copied');
+    });
+    document.getElementById('exportJsonBtn').addEventListener('click', exportJson);
+    document.getElementById('gmapsBtn').addEventListener('click', () => {
+      if (lastData && lastData.lat && lastData.lon) {
+        window.open('https://www.google.com/maps?q=' + lastData.lat + ',' + lastData.lon, '_blank');
+      }
+    });
+
+    // ---------- trace ----------
+
+    function doTrace() {
+      const ip = ipInput.value.trim();
+      if (!ip) {
+        setStatus('Please enter an IP address.', 'error');
+        return;
+      }
+
+      traceBtn.disabled = true;
+      traceBtn.value = 'Tracing...';
+      setStatus('Resolving ' + ip + ' ...');
+
+      // ip-api.com free endpoint is HTTP-only (HTTPS requires their pro plan)
+      fetch('http://ip-api.com/json/' + encodeURIComponent(ip) + '?fields=' + API_FIELDS)
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            setStatus('Trace complete — ' + (data.country || 'unknown origin'), 'ok');
+            pushHistory(ip);
+            render(data);
+          } else {
+            setStatus('Failed: ' + (data.message || 'unable to fetch IP details.'), 'error');
+          }
+        })
+        .catch(error => {
+          setStatus('Network error — is the API reachable?', 'error');
+          console.log(error);
+        })
+        .finally(() => {
+          traceBtn.disabled = false;
+          traceBtn.value = 'Trace';
+        });
+    }
+
+    ipInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); doTrace(); }
+    });
+    traceBtn.addEventListener('click', e => { e.preventDefault(); doTrace(); });
+
+    renderHistory();
+  </script>
+</body>
+</html>

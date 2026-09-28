@@ -1,0 +1,216 @@
+#!/bin/bash
+# script by: MrHacker-X
+# improved: python3-based server, random uncommon port pool, colored output,
+#           port-pool based detection (start/status/stop need no stale pid files)
+
+APP_DIR="$HOME/.locatorx"
+DOCROOT="$APP_DIR/web"
+PID_FILE="$APP_DIR/locatorx.pid"
+PORT_FILE="$APP_DIR/locatorx.port"
+ 
+PORTS=(27182 31415 16180 14142 57721)
+
+# ---------- colors (disabled when not a terminal or NO_COLOR is set) ----------
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
+    RD=$'\e[31m'; GR=$'\e[32m'; YL=$'\e[33m'; CY=$'\e[36m'; BW=$'\e[1m'; DM=$'\e[2m'; XX=$'\e[0m'
+else
+    RD=""; GR=""; YL=""; CY=""; BW=""; DM=""; XX=""
+fi
+
+info() { printf '%s[-]%s %s\n' "$CY" "$XX" "$1"; }
+ok()   { printf '%s[+]%s %s\n' "$GR" "$XX" "$1"; }
+warn() { printf '%s[!]%s %s\n' "$YL" "$XX" "$1"; }
+err()  { printf '%s[x]%s %s\n' "$RD" "$XX" "$1" >&2; }
+url()  { printf '%s[-]%s URL: %s\n' "$CY" "$XX" "${BW}http://127.0.0.1:$1${XX}"; }
+
+# Open the running server in the user's browser (Termux-aware)
+open_browser() {
+    local url="http://127.0.0.1:$1"
+    local opener=""
+
+    if [ -n "${TERMUX_VERSION:-}" ]; then
+        command -v termux-open-url >/dev/null 2>&1 && opener="termux-open-url"
+        [ -z "$opener" ] && command -v termux-open >/dev/null 2>&1 && opener="termux-open"
+    fi
+    [ -z "$opener" ] && command -v xdg-open >/dev/null 2>&1 && opener="xdg-open"
+
+    if [ -n "$opener" ]; then
+        "$opener" "$url" >/dev/null 2>&1 &
+        info "Opening browser..."
+    else
+        info "Open in your browser: $url"
+    fi
+}
+
+# Platform-aware python install hint (Termux uses pkg, Linux uses the distro PM)
+python_hint() {
+    if [ -n "${TERMUX_VERSION:-}" ]; then
+        warn "python3 is not installed. Run: pkg install python"
+    else
+        warn "python3 is not installed. Install it with your package manager"
+        info "(e.g. apt install python3 / dnf install python3 / pacman -S python) and try again."
+    fi
+}
+
+# ---------- port helpers (python3 is required for the server anyway) ----------
+
+# exit 0 if something is LISTENING on the port (used to skip busy ports)
+port_listening() {
+    python3 - "$1" <<'PY' 2>/dev/null
+import socket, sys
+s = socket.socket()
+s.settimeout(0.4)
+try:
+    s.connect(("127.0.0.1", int(sys.argv[1])))
+    sys.exit(0)
+except OSError:
+    sys.exit(1)
+finally:
+    s.close()
+PY
+}
+
+# exit 0 if the port actually serves the LocatorX page (so we never touch
+# another tool's server that happens to sit on one of our ports)
+serves_locatorx() {
+    python3 - "$1" <<'PY' 2>/dev/null
+import sys, urllib.request
+try:
+    with urllib.request.urlopen("http://127.0.0.1:%s/" % sys.argv[1], timeout=1) as r:
+        body = r.read(4096).decode("utf-8", "ignore")
+    sys.exit(0 if "LocatorX" in body else 1)
+except Exception:
+    sys.exit(1)
+PY
+}
+
+# print pids of python http.server processes bound to the given port
+server_pids_for_port() {
+    local proc pid cmd
+    for proc in /proc/[0-9]*; do
+        pid="${proc#/proc/}"
+        [ "$pid" = "$$" ] && continue
+        cmd="$(tr '\0' ' ' 2>/dev/null < "$proc/cmdline")" || continue
+        case "$cmd" in
+            *python*http\ server\ "$1 "\ *) echo "$pid" ;;
+            *python*http\ server\ "$1 ")    echo "$pid" ;;
+        esac
+    done
+}
+
+# print every pool port that currently serves LocatorX
+find_running_ports() {
+    local port
+    for port in "${PORTS[@]}"; do
+        serves_locatorx "$port" && echo "$port"
+    done
+}
+
+# ---------- commands ----------
+
+start_server() {
+    if ! command -v python3 >/dev/null 2>&1; then
+        python_hint
+        exit 1
+    fi
+
+    if [ ! -f "$DOCROOT/index.html" ]; then
+        warn "LocatorX files are missing at $DOCROOT"
+        info "Re-run the installer (bash install.sh)."
+        exit 1
+    fi
+
+    # Our own server already up? Just open it — do not start a second one.
+    local running
+    running="$(find_running_ports | head -1)"
+    if [ -n "$running" ]; then
+        ok "LocatorX server is already running."
+        url "$running"
+        open_browser "$running"
+        exit 0
+    fi
+
+    # Pick a random FREE port from the pool (ports held by other tools are skipped)
+    local port p
+    local -a free_ports=()
+    for p in "${PORTS[@]}"; do
+        port_listening "$p" || free_ports+=("$p")
+    done
+
+    if [ "${#free_ports[@]}" -eq 0 ]; then
+        err "All LocatorX ports are busy: ${PORTS[*]}"
+        info "Free one of them and try again."
+        exit 1
+    fi
+
+    port="${free_ports[RANDOM % ${#free_ports[@]}]}"
+
+    # python3 -m http.server: serves the docroot on IPv4 loopback only
+    # (--bind 127.0.0.1: 'localhost' can resolve to ::1 and break detection)
+    nohup bash -c 'cd "$1" && exec python3 -m http.server "$2" --bind 127.0.0.1' \
+        lx "$DOCROOT" "$port" >/dev/null 2>&1 &
+    echo $! > "$PID_FILE"
+    echo "$port" > "$PORT_FILE"
+    sleep 1
+
+    if serves_locatorx "$port"; then
+        ok "LocatorX Server started on port $port."
+        url "$port"
+        open_browser "$port"
+        info "Stop it with: ${BW}locatorx stop${XX}"
+    else
+        err "Server failed to start. Try running:"
+        info "  cd $DOCROOT && python3 -m http.server $port --bind 127.0.0.1"
+        exit 1
+    fi
+}
+
+stop_server() {
+    local running stopped=0 port pid
+    running="$(find_running_ports)"
+
+    if [ -n "$running" ]; then
+        while read -r port; do
+            for pid in $(server_pids_for_port "$port"); do
+                if kill "$pid" 2>/dev/null; then
+                    stopped=1
+                fi
+            done
+            # fallback: the port is verified to serve LocatorX, so it is safe to free it
+            if [ "$stopped" -eq 0 ] && command -v fuser >/dev/null 2>&1; then
+                fuser -k "$port/tcp" >/dev/null 2>&1 && stopped=1
+            fi
+        done <<< "$running"
+    fi
+
+    rm -f "$PID_FILE" "$PORT_FILE"
+
+    if [ "$stopped" -eq 1 ]; then
+        ok "Server stopped."
+    else
+        info "Server is not running."
+    fi
+}
+
+status_server() {
+    local running port
+    running="$(find_running_ports)"
+
+    if [ -n "$running" ]; then
+        ok "LocatorX server is running."
+        while read -r port; do
+            url "$port"
+        done <<< "$running"
+    else
+        info "Server is not running."
+        info "Start it with: ${BW}locatorx start${XX}"
+        exit 1
+    fi
+}
+
+case "$1" in
+    start)  start_server ;;
+    stop)   stop_server ;;
+    status) status_server ;;
+    *)      info "Usage: locatorx [start|stop|status]" ;;
+esac

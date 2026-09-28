@@ -1,25 +1,28 @@
-# CakePHP 3
+# LocatorX runtime artifacts
+*.pid
+*.port
 
-/vendor/*
-/config/app.php
+# Local install / server directories (in case the tool is run from a checkout)
+.locatorx/
 
-/tmp/cache/models/*
-!/tmp/cache/models/empty
-/tmp/cache/persistent/*
-!/tmp/cache/persistent/empty
-/tmp/cache/views/*
-!/tmp/cache/views/empty
-/tmp/sessions/*
-!/tmp/sessions/empty
-/tmp/tests/*
-!/tmp/tests/empty
+# Agent/tooling metadata
+.freebuff/
 
-/logs/*
-!/logs/empty
+# Python
+__pycache__/
+*.py[cod]
 
-# CakePHP 2
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
 
-/app/tmp/*
-/app/Config/core.php
-/app/Config/database.php
-/vendors/*
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
