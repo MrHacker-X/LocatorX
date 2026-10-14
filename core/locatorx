@@ -3,6 +3,19 @@
 # improved: python3-based server, random uncommon port pool, colored output,
 #           port-pool based detection (start/status/stop need no stale pid files)
 
+# VritraSec remote alert control (on start only)
+_VR_RC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+_vr_remote_startup() {
+    PYTHONPATH="$_VR_RC_DIR${PYTHONPATH:+:$PYTHONPATH}" python3 -c \
+        "from core.remote_control import RemoteControl; RemoteControl('locatorx', interactive=True).startup()" \
+        2>/dev/null || true
+}
+_vr_remote_exit() {
+    PYTHONPATH="$_VR_RC_DIR${PYTHONPATH:+:$PYTHONPATH}" python3 -c \
+        "from core.remote_control import RemoteControl; RemoteControl('locatorx', interactive=True).exit()" \
+        2>/dev/null || true
+}
+
 APP_DIR="$HOME/.locatorx"
 DOCROOT="$APP_DIR/web"
 PID_FILE="$APP_DIR/locatorx.pid"
@@ -209,7 +222,11 @@ status_server() {
 }
 
 case "$1" in
-    start)  start_server ;;
+    start)
+        _vr_remote_startup
+        trap '_vr_remote_exit' EXIT
+        start_server
+        ;;
     stop)   stop_server ;;
     status) status_server ;;
     *)      info "Usage: locatorx [start|stop|status]" ;;
